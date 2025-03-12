@@ -13,7 +13,7 @@ class SextantCoordinates:
 
     def parse_coordinate(self, text):
         parts = text.replace("°", " ").replace("'", " ").split(" ")
-        degree = (int(parts[0]) + int(parts[1]) / 60) - 0.016666666
+        degree = (int(parts[0]) + int(parts[1]) / 60)
         if parts[2] in ["S", "W"]:
             degree *= -1
         return degree
@@ -21,15 +21,15 @@ class SextantCoordinates:
     def to_tile(self):
         center_x, center_y = SextantCoordinates.MAP_CENTER
         map_x, map_y = SextantCoordinates.MAP
-        x = round(abs(self.lon * map_x / 360 + center_x))
-        y = round(abs(self.lat * map_y / 360 + center_y))
-
+        x = round((self.lon * map_x / 360) + map_x + center_x)
         if x > map_x:
-            x = x - map_x
-        if y > map_y:
-            y = y - map_y
+            x -= map_x
 
-        return {"x": x, "y": y}
+        y = round((self.lat * map_y / 360) - center_y - map_y)
+        if abs(y) > map_y:
+            y = abs(y) - map_y
+
+        return {"x": round(abs(x)), "y": round(abs(y))}
 
     @staticmethod
     def from_string(s):
@@ -40,34 +40,49 @@ class SextantCoordinates:
         return SextantCoordinates(lat, lon)
 
     @staticmethod
+    def get_direction(x, y):
+        if 1323 <= x <= 3883:
+            lon_direction = "E"
+        elif x < 1323:
+            lon_direction = "W"
+        else:
+            lon_direction = "W"
+
+        if 1624 <= y <= 3672:
+            lat_direction = "S"
+        elif y < 1264:
+            lat_direction = "N"
+        else:
+            lat_direction = "N"
+
+        return lat_direction, lon_direction
+
+
+    @staticmethod
     def from_tile(x, y):
         # d = (t - C) * 360 / N
-        # when W - floor
         lon = (x - SextantCoordinates.MAP_CENTER[0]) * 360 / SextantCoordinates.MAP[0]
         lat = (y - SextantCoordinates.MAP_CENTER[1]) * 360 / SextantCoordinates.MAP[1]
 
-        def normalize_degree(degree):
-            if degree > 180:
-                return degree - 360
-            elif degree < -180:
-                return -(360 + degree)
-            else:
-                return degree
+        if lon > 180:
+            # Right part of West, from 3883 to 4090 on map
+            lon = 360 - lon
 
-        def convert(value, is_latitude):
-            direction = ('S' if value < 0 else 'N') if is_latitude else ('W' if value < 0 else 'E')
+        if lat > 180:
+            lat = 360 - lat
 
+        lat_direction, lon_direction = SextantCoordinates.get_direction(x, y)
+
+        def convert(value):
             degrees = int(value)
-            minutes = abs(value - degrees) * 60
-            if direction in ["W", "S"]:
-                minutes = math.floor(minutes)
+            if (value - degrees) * 60 < 0:
+                minutes = int(abs(value - degrees) * 60)
             else:
-                minutes = math.floor(minutes)
-            return "{}°{}'{}".format(abs(degrees), minutes, direction)
+                minutes = int(abs(value - degrees) * 60)
+            return "{}°{}'".format(abs(degrees), minutes)
 
-        lat_str = convert(normalize_degree(lat), True)
-        lon_str = convert(normalize_degree(lon), False)
-
+        lat_str = convert(lat) + lat_direction
+        lon_str = convert(lon) + lon_direction
         return SextantCoordinates(lat_str, lon_str)
 
     def __str__(self):
