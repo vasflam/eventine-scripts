@@ -1,5 +1,18 @@
 from bigfish.seafarer.common.sextant_coordinate import SextantCoordinates
 
+class BookEntry:
+    def __init__(self, coordinates: SextantCoordinates, rarity = "Normal"):
+        self.coordinates = coordinates
+        self.rarity = rarity
+
+    def __eq__(self, other):
+        if isinstance(other, BookEntry):
+            return self.coordinates == other.coordinates and self.rarity == other.rarity
+        return NotImplemented
+
+    def __str__(self):
+        return str(self.coordinates)
+
 class SOSBook:
     GUMP_ID = 0xf37bcaf2
     TYPE_ID = 0xAA70
@@ -44,16 +57,16 @@ class SOSBook:
         return content
 
     def parse_page(self, text = []):
-        coordinates = []
+        book_entries = []
         def chunk_list(lst, chunk_size):
             return [lst[i:i+chunk_size] for i in range(0, len(lst), chunk_size)]
         chunks = chunk_list(text, 4)
         for entry in chunks:
             if None in entry:
                 break
-            is_ancient = True if entry[0] != "Normal" else False
-            coordinates.append((SextantCoordinates.from_string(entry[1]), is_ancient))
-        return coordinates
+            coordinates = SextantCoordinates.from_string(entry[1])
+            book_entries.append(BookEntry(coordinates, rarity=entry[0]))
+        return book_entries
 
     def has_next_page(self, gump_data):
         for t in gump_data.gumpText:

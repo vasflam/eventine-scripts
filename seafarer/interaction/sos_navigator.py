@@ -39,9 +39,9 @@ class SOSNavigator:
             entries = book.get_content()
             markers = []
             for entry in entries:
-                sos = entry[0]
+                sos = entry.coordinates
                 tile = sos.to_tile()
-                color = "white" if entry[1] else "yellow"
+                color = "white" if entry.rarity == "Ancient" else "yellow"
                 markers.append("{},{},{},SOS {}:{},,{},0".format(tile['x'], tile['y'], Player.Map, sos.latStr, sos.lonStr, color))
             self.markers.write(markers)
             Misc.Pause(300)
@@ -55,10 +55,10 @@ class SOSNavigator:
             book = SOSBook(self.selected_book)
             entries = book.get_content()
             for entry in entries:
-                sos = entry[0]
+                sos = entry.coordinates
                 tile = sos.to_tile()
                 if self.is_within_range(Player.Position.X, Player.Position.Y, tile['x'], tile['y']):
-                    book.get_content(with_remove=sos)
+                    book.get_content(with_remove=entry)
                     return True
             return False
         else:
