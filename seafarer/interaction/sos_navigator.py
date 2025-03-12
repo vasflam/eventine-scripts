@@ -78,7 +78,6 @@ class SOSNavigator:
                 Player.HeadMessage(80, "Ghost can't use items")
                 return
             button = gd.buttonid
-            print("clicked " + str(button))
             if button == self.BUTTON_REFRESH_MARKERS:
                 self.refresh_markers()
             elif button == self.BUTTON_FISHING:
