@@ -51,7 +51,8 @@ class SOSBook:
         for entry in chunks:
             if None in entry:
                 break
-            coordinates.append(SextantCoordinates.from_string(entry[1]))
+            is_ancient = True if entry[0] != "Normal" else False
+            coordinates.append((SextantCoordinates.from_string(entry[1]), is_ancient))
         return coordinates
 
     def has_next_page(self, gump_data):
