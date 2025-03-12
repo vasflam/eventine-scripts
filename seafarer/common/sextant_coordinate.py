@@ -22,7 +22,7 @@ class SextantCoordinates:
         center_x, center_y = SextantCoordinates.MAP_CENTER
         map_x, map_y = SextantCoordinates.MAP
         x = abs(round(self.lon * map_x / 360 + map_x + center_x))
-        y = abs(round(self.lat * map_y / 360 - center_y))
+        y = abs(round(self.lat * map_y / 360 + map_y + center_y))
 
         if x > map_x:
             x = x - map_x
