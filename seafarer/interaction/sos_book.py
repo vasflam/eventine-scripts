@@ -30,7 +30,6 @@ class SOSBook:
 
                 if with_remove and with_remove in content:
                     button = (content.index(with_remove) * 2) + 10
-                    print(button)
                     Gumps.SendAction(self.GUMP_ID, button)
                     self.wait_for_gump()
                     Gumps.CloseGump(self.GUMP_ID)
@@ -55,8 +54,8 @@ class SOSBook:
             coordinates.append(SextantCoordinates.from_string(entry[1]))
         return coordinates
 
-    def has_next_page(self, gumpData):
-        for t in gumpData.gumpText:
+    def has_next_page(self, gump_data):
+        for t in gump_data.gumpText:
             if t == "Next page":
                 return True
         return False

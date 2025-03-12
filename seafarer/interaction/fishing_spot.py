@@ -12,24 +12,31 @@ class FishingSpot:
         "heavy chest",
     ]
 
+    STATE_STOPPED = 0
+    STATE_STARTED = 1
+    STATE_STOPPING = 2
+
     def __init__(self):
         self.started = False
         self.stopping = False
+        self.state = self.STATE_STOPPED
 
     def find_pole(self):
         return Items.FindByID(self.POLE_ID, -1, Player.Backpack.Serial, True, False)
 
     def equip_pole(self):
-        rHand = Player.GetItemOnLayer('RightHand')
-        if rHand.ItemID != self.POLE_ID:
-            Player.UnEquipItemByLayer('RightHand', 3500)
+        r_hand = Player.GetItemOnLayer('RightHand')
+        if r_hand is None or r_hand.ItemID != self.POLE_ID:
+            if r_hand:
+                Player.UnEquipItemByLayer('RightHand', 3500)
+                Misc.Pause(100)
             pole = self.find_pole()
             if pole:
                 Player.EquipItem(pole)
                 Misc.Pause(650)
                 return pole
         else:
-            return rHand
+            return r_hand
 
     def in_journal(self, lines = []):
         for line in lines:
@@ -37,15 +44,14 @@ class FishingSpot:
                 return True
 
     def start(self):
-        self.started = True
-        print("started")
+        self.state = self.STATE_STARTED
         try:
             if Player.Mount:
-                Items.UseItem(Player.Serial)
+                Player.HeadMessage(80, "Unmounting")
+                Mobiles.UseMobile(Player.Serial)
                 Misc.Pause(650)
 
-            print(self.started)
-            while True and self.started:
+            while True and self.state != self.STATE_STOPPING:
                 Journal.Clear()
                 pole = self.equip_pole()
                 if not pole:
@@ -61,9 +67,10 @@ class FishingSpot:
                         return
                     if self.in_journal(self.CATCH_MESSAGES):
                         break
-                    Misc.Pause(750)
+                    Misc.Pause(650)
+                Misc.Pause(100)
         finally:
-            self.started = False
+            self.state = self.STATE_STOPPED
 
     def stop(self):
-        self.started = False
+        self.state = self.STATE_STOPPING
