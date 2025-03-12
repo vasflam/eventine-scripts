@@ -67,29 +67,30 @@ class SOSNavigator:
             self.fishing_thread = Thread(target=self.fishing_spot.start)
             self.fishing_thread.start()
             Misc.Pause(200)
+        else:
+            Player.HeadMessage(80, "No SOS marker near!")
 
     def handle_controls(self):
         gd = self.get_gump_data()
+        fishing_started = self.fishing_spot.started
         if gd.hasResponse:
             if Player.IsGhost:
                 Player.HeadMessage(80, "Ghost can't use items")
                 return
             button = gd.buttonid
+            print("clicked " + str(button))
             if button == self.BUTTON_REFRESH_MARKERS:
                 self.refresh_markers()
             elif button == self.BUTTON_FISHING:
-                if self.fishing_thread:
-                    print(self.fishing_thread.isAlive)
-                print(self.fishing_spot.started)
-                print(self.fishing_spot.stopping)
                 self.fishing()
             elif button == self.BUTTON_SET_BOOK:
                 self.select_book()
             else:
                 Misc.SendMessage("Unknown button")
+            fishing_started = self.fishing_spot.started
             self.show_gump()
 
-        if not self.fishing_spot.started:
+        if fishing_started != self.fishing_spot.started:
             self.show_gump()
 
     def start(self):
@@ -121,6 +122,5 @@ class SOSNavigator:
         Gumps.AddLabel(gump, startX + 30, startY + 88, 80, "Select book " + ("(*)" if self.selected_book else ""))
         if Gumps.HasGump(self.GUMP_ID):
             gd = self.get_gump_data()
-            print(gd)
             gump = gd
         Gumps.SendGump(gump.gumpId, Player.Serial, gump.x, gump.y, gump.gumpDefinition, gump.gumpStrings)
