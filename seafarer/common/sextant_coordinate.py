@@ -13,7 +13,7 @@ class SextantCoordinates:
 
     def parse_coordinate(self, text):
         parts = text.replace("°", " ").replace("'", " ").split(" ")
-        degree = int(parts[0]) + int(parts[1]) / 60
+        degree = (int(parts[0]) + int(parts[1]) / 60) - 0.016666666
         if parts[2] in ["S", "W"]:
             degree *= -1
         return degree
@@ -21,13 +21,14 @@ class SextantCoordinates:
     def to_tile(self):
         center_x, center_y = SextantCoordinates.MAP_CENTER
         map_x, map_y = SextantCoordinates.MAP
-        x = abs(round(self.lon * map_x / 360 + map_x + center_x))
-        y = abs(round(self.lat * map_y / 360 + map_y + center_y))
+        x = round(abs(self.lon * map_x / 360 + center_x))
+        y = round(abs(self.lat * map_y / 360 + center_y))
 
         if x > map_x:
             x = x - map_x
         if y > map_y:
             y = y - map_y
+
         return {"x": x, "y": y}
 
     @staticmethod
@@ -54,14 +55,14 @@ class SextantCoordinates:
                 return degree
 
         def convert(value, is_latitude):
-            direction = ('Y' if value < 0 else 'S') if is_latitude else ('W' if value < 0 else 'E')
+            direction = ('S' if value < 0 else 'N') if is_latitude else ('W' if value < 0 else 'E')
 
             degrees = int(value)
             minutes = abs(value - degrees) * 60
             if direction in ["W", "S"]:
                 minutes = math.floor(minutes)
             else:
-                minutes = round(minutes)
+                minutes = math.floor(minutes)
             return "{}°{}'{}".format(abs(degrees), minutes, direction)
 
         lat_str = convert(normalize_degree(lat), True)
