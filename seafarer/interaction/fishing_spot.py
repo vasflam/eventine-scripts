@@ -10,6 +10,7 @@ class FishingSpot:
     STOP_MESSAGES = [
         "biting here",
         "heavy chest",
+        "heavy crate",
     ]
 
     STATE_STOPPED = 0
