@@ -11,6 +11,7 @@ class FishingSpot:
         "biting here",
         "heavy chest",
         "heavy crate",
+        "heavy box",
     ]
 
     STATE_STOPPED = 0

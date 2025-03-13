@@ -28,7 +28,7 @@ class SOSNavigator:
     def select_book(self):
         self.selected_book = Target.PromptTarget("Select SOS book")
 
-    def is_within_range(self, x1, y1, x2, y2, max_range = 2):
+    def is_within_range(self, x1, y1, x2, y2, max_range = 13):
         distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
         return distance <= max_range
 
