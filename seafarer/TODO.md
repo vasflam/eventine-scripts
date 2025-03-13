@@ -1,0 +1,7 @@
+- try to kill mobs
+- try to kill kraken
+- pull mobs with net if available and loot them
+- grab chest on ground
+- unlock chest
+- loot valuable items
+- check item contracts book, grab and fill contract if we have items to fill and put it back
