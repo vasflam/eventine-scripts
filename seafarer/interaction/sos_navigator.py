@@ -1,6 +1,6 @@
 from threading import Thread
 
-from bigfish.libs import Observer
+from bigfish.libs import Observer, SettingsAware, load_settings_from_json
 from bigfish.seafarer.interaction.sos_book import SOSBook
 from bigfish.seafarer.common.markers import Markers
 from bigfish.libs.activity.fishing import Fishing, FishingSettings
@@ -8,11 +8,22 @@ import CUO
 import math
 import os
 
-class SOSNavigatorSettings:
-    def __init__(self):
+class SOSNavigatorSettings(SettingsAware):
+    def __init__(self, **kwargs):
+        super()
         self.fishing_settings = FishingSettings()
-        self.markers_dir = None
+        self.markers_dir = r'C:\ClassicUO\Data'
         self.refresh_interval = 300
+        self.gump_position = (0, 100)
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    @classmethod
+    def from_dict(cls, dct):
+        fs = FishingSettings(**dct['fishing_settings'])
+        dct['fishing_settings'] = fs
+        return SOSNavigatorSettings(**dct)
 
 class SOSNavigator(Observer):
     GUMP_ID = 100012
@@ -30,8 +41,7 @@ class SOSNavigator(Observer):
         self.fishing_thread = None
         self.caller_script = caller_script
 
-    def notify(self):
-        print("notify requested")
+    def update(self, observable):
         self.show_gump()
 
     def get_gump_data(self):
@@ -98,7 +108,7 @@ class SOSNavigator(Observer):
 
     def handle_controls(self):
         gd = self.get_gump_data()
-        if gd.hasResponse:
+        if gd and gd.hasResponse:
             if Player.IsGhost:
                 Player.HeadMessage(80, "Ghost can't use items")
                 return
@@ -118,6 +128,7 @@ class SOSNavigator(Observer):
         while True and Misc.ScriptStatus(self.caller_script):
             Misc.Pause(500)
         self.fishing_manager.stop()
+        #self.settings.save()
 
     def start(self):
         monitor_thread = Thread(target=self.monitor_threads)
@@ -130,31 +141,29 @@ class SOSNavigator(Observer):
     def show_gump(self):
         gump = Gumps.CreateGump(True, True, True, True)
         gump.gumpId = self.GUMP_ID
-        startX = 300
-        startY = 300
+        start_x = 0
+        start_y = 0
 
         html = ""
-        Gumps.AddHtml(gump, startX, startY, 145, 120, html, True, False)
-        Gumps.AddLabel(gump, startX + 43, startY + 5, 0, "SOS Navigator")
+        Gumps.AddHtml(gump, start_x, start_y, 145, 120, html, True, False)
+        Gumps.AddLabel(gump, start_x + 43, start_y + 5, 0, "SOS Navigator")
 
-        Gumps.AddButton(gump, startX + 10, startY + 25, 40019, 40029, self.BUTTON_FISHING, 1, 1)
-        if self.fishing_manager.status == Fishing.STATE_RUNNING:
-            if self.fishing_manager.status == Fishing.STATUS_STOPPING:
-                Gumps.AddLabel(gump, startX + 30, startY + 28, 80, "Stopping...")
-            else:
-                Gumps.AddLabel(gump, startX + 30, startY + 28, 80, "Stop Fishing")
+        Gumps.AddButton(gump, start_x + 10, start_y + 25, 40019, 40029, self.BUTTON_FISHING, 1, 1)
+        if self.fishing_manager.is_stopping():
+            Gumps.AddLabel(gump, start_x + 30, start_y + 28, 80, "Stopping...")
+        elif self.fishing_manager.is_running():
+            Gumps.AddLabel(gump, start_x + 30, start_y + 28, 80, "Stop Fishing")
         else:
-            Gumps.AddLabel(gump, startX + 30, startY + 28, 80, "Start Fishing")
+            Gumps.AddLabel(gump, start_x + 30, start_y + 28, 80, "Start Fishing")
 
-        Gumps.AddButton(gump, startX + 10, startY + 55, 40019, 40029, self.BUTTON_REFRESH_MARKERS, 1, 1)
-        Gumps.AddLabel(gump, startX + 30, startY + 58, 80, "Refresh Markers")
+        Gumps.AddButton(gump, start_x + 10, start_y + 55, 40019, 40029, self.BUTTON_REFRESH_MARKERS, 1, 1)
+        Gumps.AddLabel(gump, start_x + 30, start_y + 58, 80, "Refresh Markers")
 
-        Gumps.AddButton(gump, startX + 10, startY + 85, 40019, 40029, self.BUTTON_SET_BOOK, 1, 1)
+        Gumps.AddButton(gump, start_x + 10, start_y + 85, 40019, 40029, self.BUTTON_SET_BOOK, 1, 1)
         if self.selected_book:
-            Gumps.AddLabel(gump, startX + 30, startY + 88, 80, "Unset book ")
+            Gumps.AddLabel(gump, start_x + 30, start_y + 88, 80, "Unset book ")
         else:
-            Gumps.AddLabel(gump, startX + 30, startY + 88, 80, "Select book")
-        if Gumps.HasGump(self.GUMP_ID):
-            gd = self.get_gump_data()
-            gump = gd
-        Gumps.SendGump(gump.gumpId, Player.Serial, gump.x, gump.y, gump.gumpDefinition, gump.gumpStrings)
+            Gumps.AddLabel(gump, start_x + 30, start_y + 88, 80, "Select book")
+
+        x, y = self.settings.gump_position
+        Gumps.SendGump(gump.gumpId, Player.Serial, x, y, gump.gumpDefinition, gump.gumpStrings)

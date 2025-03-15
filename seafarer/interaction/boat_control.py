@@ -196,7 +196,7 @@ class BoatControl:
 
     def start(self):
         gump = self.get_gump()
-        Gumps.SendGump(gump.gumpId, Player.Serial, 100, 100, gump.gumpDefinition, gump.gumpStrings)
+        Gumps.SendGump(gump.gumpId, Player.Serial, 0, 172, gump.gumpDefinition, gump.gumpStrings)
         Misc.Pause(300)
         # Gumps.WaitForGump(gump.gumpId, 10000)
         while True:

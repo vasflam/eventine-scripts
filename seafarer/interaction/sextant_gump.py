@@ -1,4 +1,9 @@
+from bigfish.libs import SettingsAware
 from bigfish.seafarer.common.sextant_coordinate import SextantCoordinates
+
+class SextantSettings(SettingsAware):
+    def __init__(self):
+        self.a = 1
 
 class SextantGump:
     GUMP_ID = 100011
@@ -21,8 +26,8 @@ class SextantGump:
         gump.x = self.gump_last_x
         gump.y = self.gump_last_y
         gump.gumpId = self.GUMP_ID
-        startX = 300
-        startY = 300
+        startX = 0
+        startY = 0
 
         html = ""
         Gumps.AddHtml(gump, startX, startY, 145, 63, html, True, False)

@@ -84,9 +84,9 @@ def find_in_container(graphics, color = -1, container = None, recursive = True, 
 
     items = []
     for type_id in graphics:
-        found = Items.FindByID(type_id, color, container, recursive, ignore_objects)
+        found = Items.FindAllByID(type_id, color, container, recursive, ignore_objects)
         if found:
-            items.append(found.Serial)
+            items += [f.Serial for f in found]
     return items
 
 def find_in_backpack(graphics, recursive = True, ignore_objects = True):
